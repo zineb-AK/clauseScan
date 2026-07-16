@@ -1,20 +1,39 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Projet : ClauseScan — API REST Laravel qui analyse automatiquement des contrats
+  (baux de location, prestations freelance) grâce à l'IA (API Groq), extrait les
+  informations clés, détecte les clauses à risque et les explique en langage simple.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Stack technique :
+    - Backend : Laravel (API REST)
+    - Base de données : MySQL
+    - Authentification : Laravel Sanctum
+    - IA : API Groq (extraction de clauses, explications simplifiées)
+    - Traitement asynchrone : Laravel Jobs & Queues
+    - Tests : PHPUnit, Postman
+    - Déploiement : Docker, Azure Virtual Machine, Nginx
+    - CI/CD : GitHub Actions
+    - Spécifications : OpenSpec + OpenCode
+
+  Conventions :
+    - Architecture Laravel standard : Controllers fins, Form Requests pour la validation,
+      Services pour la logique métier, Jobs pour les traitements longs.
+    - Chaque utilisateur ne peut accéder qu'à ses propres contrats/analyses.
+    - Les clés API (Groq) sont stockées uniquement dans les variables d'environnement.
+    - Toute route protégée doit passer par le middleware Sanctum.
+
+domains:
+  - auth          # Epic 1 - Authentification (US1-US3)
+  - contracts      # Epic 2 - Gestion des contrats (US4-US7)
+  - ai-analysis    # Epic 3 - Analyse IA (US8-US12)
+  - history        # Epic 4 - Historique (US13-US14)
+  - security        # Epic 5 - Sécurité (US15)
+  - i18n           # Bonus - Choix de la langue (US16)
+
+rules:
+  proposal:
+    require_tasks: true
+    require_design: true
+  archive:
+    require_validation: true
