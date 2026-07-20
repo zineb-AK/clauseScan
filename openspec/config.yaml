@@ -1,39 +1,112 @@
+# openspec/config.yaml
+
+# Schéma par défaut utilisé pour toutes les nouvelles changes
 schema: spec-driven
 
+# ---------------------------------------------------------------------------
+# Contexte projet — injecté dans TOUS les artefacts (proposal, specs, design, tasks)
+# Max 50KB, donc on reste précis et utile plutôt qu'exhaustif.
+# ---------------------------------------------------------------------------
 context: |
-  Projet : ClauseScan — API REST Laravel qui analyse automatiquement des contrats
-  (baux de location, prestations freelance) grâce à l'IA (API Groq), extrait les
-  informations clés, détecte les clauses à risque et les explique en langage simple.
+  ## Projet
+  ClauseScan — API REST Laravel (+ frontend React) qui analyse automatiquement des
+  contrats (baux de location, prestations freelance) grâce à l'IA (OpenRouter),
+  extrait les informations clés, détecte les clauses à risque et les explique en
+  langage simple. Projet de fin de formation Laravel AI Augmented Backend Developer.
 
-  Stack technique :
-    - Backend : Laravel (API REST)
-    - Base de données : MySQL
-    - Authentification : Laravel Sanctum
-    - IA : API Groq (extraction de clauses, explications simplifiées)
-    - Traitement asynchrone : Laravel Jobs & Queues
-    - Tests : PHPUnit, Postman
-    - Déploiement : Docker, Azure Virtual Machine, Nginx
-    - CI/CD : GitHub Actions
-    - Spécifications : OpenSpec + OpenCode
+  ## Stack technique
+  - Backend : Laravel 13, PHP 8.2+
+  - Frontend : React (SPA consommant l'API, pas de SSR)
+  - Base de données : MySQL
+  - Authentification : Laravel Sanctum (Bearer token, pas de sessions cookie)
+  - IA : OpenRouter, appels HTTP via Http::withToken() ou client dédié, structured
+    output (JSON schema) pour garantir la forme des réponses IA
+  - Extraction PDF : Spatie \ pdf-to-text (nécessite poppler-utils dans l'image Docker)
+  - Traitement asynchrone : Laravel Jobs & Queues (driver database ou redis)
+  - Tests : Pest (jamais PHPUnit brut)
+  - Conteneurisation : Docker + docker-compose (services app, db, queue worker)
+  - CI/CD : GitHub Actions (tests + Pint à chaque push)
+  - Déploiement : Azure Virtual Machine + Nginx
+  - Documentation API : Scribe
+  - Gestion de projet : Jira (board tenu à jour en parallèle des changes OpenSpec)
 
-  Conventions :
-    - Architecture Laravel standard : Controllers fins, Form Requests pour la validation,
-      Services pour la logique métier, Jobs pour les traitements longs.
-    - Chaque utilisateur ne peut accéder qu'à ses propres contrats/analyses.
-    - Les clés API (Groq) sont stockées uniquement dans les variables d'environnement.
-    - Toute route protégée doit passer par le middleware Sanctum.
+  ## Domaines fonctionnels (épics) et User Stories
+  - **auth** (US1-US3) : inscription, connexion, déconnexion via Sanctum.
+  - **contracts** (US4-US7) : import PDF (texte extrait via Spatie pdf-to-text),
+    import texte brut, liste des contrats, suppression.
+  - **ai-analysis** (US8-US12) : lancement d'analyse (Job asynchrone, 202 Accepted),
+    extraction de clauses (durée, préavis, pénalités, résiliation), détection de
+    clauses à risque, explication en langage simple, consultation des résultats.
+    Envoie le texte COMPLET du contrat au modèle via OpenRouter (context stuffing).
+    Pas de RAG ici — les contrats concernés tiennent dans la fenêtre de contexte.
+  - **history** (US13-US14) : historique des analyses, export PDF du rapport.
+  - **security** (US15) : cloisonnement des données par utilisateur (policies Laravel).
+  - **i18n** (US16, bonus) : choix de la langue des résultats d'analyse.
+  - **chat-agent** (US17, bonus) : agent conversationnel sur un contrat donné.
+    SEUL cas d'usage du RAG dans le projet (chunking + embeddings + recherche des
+    passages pertinents avant de générer une réponse).
 
-domains:
-  - auth          # Epic 1 - Authentification (US1-US3)
-  - contracts      # Epic 2 - Gestion des contrats (US4-US7)
-  - ai-analysis    # Epic 3 - Analyse IA (US8-US12)
-  - history        # Epic 4 - Historique (US13-US14)
-  - security        # Epic 5 - Sécurité (US15)
-  - i18n           # Bonus - Choix de la langue (US16)
+  ## Modèle de données de référence
+  - `User` (id, name, email, password)
+  - `Contract` (id, user_id, title, source_type[pdf|text], file_path, raw_text, status)
+  - `Analysis` (id, contract_id, status[pending|processing|done|failed], language,
+    result_json — via un Cast dédié)
+  - `Clause` (id, analysis_id, type, content, risk_level[low|medium|high], explanation)
 
+  ## Conventions de code et d'API
+  - Controllers fins : validation → délégation (Job/Service) → réponse.
+  - Form Requests pour toute validation d'entrée (jamais de `$request->validate()` inline).
+  - API Resources pour toute réponse JSON (jamais de retour de modèle brut).
+  - Codes HTTP stricts : 200 (lecture), 201 (création), 202 (job accepté), 204
+    (suppression), 401 (non authentifié), 403 (interdit / pas propriétaire), 404
+    (introuvable), 422 (validation).
+  - Toute route protégée passe par le middleware `auth:sanctum`.
+  - Isolation des données : utiliser des Policies Laravel (`ContractPolicy`,
+    `AnalysisPolicy`), jamais de vérification manuelle `if ($contract->user_id !== ...)`
+    éparpillée dans les controllers.
+  - Ne jamais confondre les trois briques IA/texte du projet : extraction PDF
+    (Spatie pdf-to-text) ≠ analyse principale (context stuffing via OpenRouter) ≠
+    agent conversationnel (RAG, US17 uniquement).
+  - Clés API (OpenRouter) uniquement en variables d'environnement, jamais committées,
+    jamais loguées.
+  - PDF scannés (image sans texte sélectionnable) : hors périmètre initial, limitation
+    connue et assumée.
+
+  ## Tests
+  - Pest exclusivement. Un test minimum par endpoint : succès + 401 + 422.
+  - `Http::fake()` pour tout appel OpenRouter, `Queue::fake()` pour tout Job — jamais
+    d'appel réseau réel dans la suite de tests.
+  - Utiliser les factories Eloquent, ne jamais créer de modèles à la main dans un test.
+
+# ---------------------------------------------------------------------------
+# Règles injectées uniquement dans l'artefact correspondant
+# ---------------------------------------------------------------------------
 rules:
   proposal:
-    require_tasks: true
-    require_design: true
-  archive:
-    require_validation: true
+    - "Indiquer explicitement l'epic et les User Stories couvertes (ex: Epic 3 - US8, US9)"
+    - "Preciser a quelle brique la fonctionnalite touche : extraction PDF, analyse IA (context stuffing) ou agent conversationnel (RAG, US17 uniquement) - ne pas melanger ces briques dans une meme proposal"
+    - "Indiquer si un traitement asynchrone (Job/Queue) est necessaire et pourquoi"
+    - "Mentionner l'impact sur l'isolation des donnees utilisateur (Policy concernee)"
+    - "Lister les endpoints ajoutes/modifies avec leur verbe HTTP et leur route"
+    - "Signaler tout changement de schema de base de donnees (nouvelle migration)"
+
+  specs:
+    - "Utiliser le format Given/When/Then pour chaque scenario, un scenario par cas"
+    - "Couvrir systematiquement : cas nominal, 401 (non authentifie), 403 (autre utilisateur), 422 (validation), et les cas limites propres au domaine (PDF scanne/illisible, contrat vide, reponse IA malformee ou hors schema, timeout OpenRouter)"
+    - "Preciser le format exact de la reponse JSON attendue, en citant l'API Resource utilisee (nom + champs)"
+    - "Pour les endpoints asynchrones, specifier le scenario 202 immediat separement du scenario resultat consultable une fois le Job termine"
+
+  design:
+    - "Identifier precisement les modeles/migrations impactes, avec les colonnes ajoutees"
+    - "Documenter le schema structured output (JSON schema) attendu de l'appel OpenRouter quand la fonctionnalite appelle l'IA"
+    - "Preciser le Cast Eloquent utilise pour stocker/lire les resultats IA en base"
+    - "Indiquer la Policy Laravel utilisee pour l'autorisation d'acces"
+    - "Pour toute fonctionnalite liee a US17 (agent conversationnel), documenter la strategie de chunking, le stockage des embeddings et la methode de recherche (similarite cosinus, top-k, etc.)"
+    - "Lister les jobs crees/modifies et leur file d'attente cible"
+
+  tasks:
+    - "Decouper en taches de 2h maximum, une tache = un commit atomique possible"
+    - "Toujours inclure une tache de test Pest correspondante, avec mention explicite du mock utilise (Http::fake / Queue::fake)"
+    - "Inclure une tache de mise a jour de la documentation Scribe si un endpoint est ajoute ou modifie"
+    - "Inclure une tache vendor/bin/pint --dirty --format agent en fin de liste"
+    - "Separer clairement les taches backend (Laravel) des taches frontend (React) si la fonctionnalite touche aux deux"
