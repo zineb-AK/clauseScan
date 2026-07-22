@@ -29,6 +29,11 @@ class User extends Authenticatable
         return $this->hasMany(Contract::class);
     }
 
+    public function analyses(): HasMany
+    {
+        return $this->hasMany(Analysis::class);
+    }
+
     protected function casts(): array
     {
         return [

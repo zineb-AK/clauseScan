@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreContractRequest;
+use App\Http\Resources\AnalysisResource;
 use App\Http\Resources\ContractResource;
+use App\Jobs\AnalyzeContractJob;
+use App\Models\Analysis;
 use App\Models\Contract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -102,6 +105,33 @@ class ContractController extends Controller
         $contract->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function analyze(Contract $contract): JsonResponse
+    {
+        $this->authorize('analyze', $contract);
+
+        $existing = $contract->analyses()
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Une analyse est déjà en cours pour ce contrat.',
+            ], Response::HTTP_CONFLICT);
+        }
+
+        $analysis = Analysis::create([
+            'contract_id' => $contract->id,
+            'user_id' => $contract->user_id,
+            'status' => 'pending',
+        ]);
+
+        AnalyzeContractJob::dispatch($analysis);
+
+        return (new AnalysisResource($analysis))
+            ->response()
+            ->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     private function deriveTitle(string $content): string
