@@ -6,12 +6,23 @@ use App\Http\Requests\StoreContractRequest;
 use App\Http\Resources\ContractResource;
 use App\Models\Contract;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Spatie\PdfToText\Pdf;
 
 class ContractController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $contracts = $request->user()
+            ->contracts()
+            ->orderBy('created_at', 'desc')
+            ->paginate();
+
+        return ContractResource::collection($contracts)->response();
+    }
+
     public function store(StoreContractRequest $request): JsonResponse
     {
         if ($request->has('content')) {
@@ -78,6 +89,19 @@ class ContractController extends Controller
         return (new ContractResource($contract))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
+    }
+
+    public function destroy(Contract $contract): JsonResponse
+    {
+        $this->authorize('delete', $contract);
+
+        if ($contract->source_type === 'pdf' && $contract->file_path) {
+            Storage::delete($contract->file_path);
+        }
+
+        $contract->delete();
+
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
     private function deriveTitle(string $content): string
