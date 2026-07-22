@@ -24,4 +24,9 @@ class ContractPolicy
     {
         return $user->id === $contract->user_id;
     }
+
+    public function analyze(User $user, Contract $contract): bool
+    {
+        return $user->id === $contract->user_id;
+    }
 }

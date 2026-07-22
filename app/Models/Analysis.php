@@ -2,33 +2,37 @@
 
 namespace App\Models;
 
-use Database\Factories\ContractFactory;
+use Database\Factories\AnalysisFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Contract extends Model
+class Analysis extends Model
 {
-    /** @use HasFactory<ContractFactory> */
+    /** @use HasFactory<AnalysisFactory> */
     use HasFactory;
 
     protected $fillable = [
+        'contract_id',
         'user_id',
-        'title',
-        'source_type',
-        'file_path',
-        'raw_text',
         'status',
+        'results',
     ];
+
+    public function contract(): BelongsTo
+    {
+        return $this->belongsTo(Contract::class);
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function analyses(): HasMany
+    protected function casts(): array
     {
-        return $this->hasMany(Analysis::class);
+        return [
+            'results' => 'array',
+        ];
     }
 }
