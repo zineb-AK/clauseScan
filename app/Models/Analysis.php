@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\AnalysisResultCast;
 use Database\Factories\AnalysisFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,7 +33,7 @@ class Analysis extends Model
     protected function casts(): array
     {
         return [
-            'results' => 'array',
+            'results' => AnalysisResultCast::class,
         ];
     }
 }
