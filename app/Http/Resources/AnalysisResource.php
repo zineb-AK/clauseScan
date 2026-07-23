@@ -12,6 +12,7 @@ class AnalysisResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->status,
+            'results' => $this->results?->toArray(),
         ];
     }
 }
