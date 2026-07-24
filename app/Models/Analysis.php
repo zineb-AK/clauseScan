@@ -7,6 +7,7 @@ use Database\Factories\AnalysisFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Analysis extends Model
 {
@@ -28,6 +29,11 @@ class Analysis extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function clauses(): HasMany
+    {
+        return $this->hasMany(Clause::class);
     }
 
     protected function casts(): array

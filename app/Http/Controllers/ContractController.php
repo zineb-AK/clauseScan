@@ -71,9 +71,9 @@ class ContractController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-      $text = trim($text);
-      $text = iconv('UTF-8', 'UTF-8//IGNORE', $text);
-      
+        $text = trim($text);
+        $text = iconv('UTF-8', 'UTF-8//IGNORE', $text);
+
         if (empty($text)) {
             return response()->json([
                 'message' => 'Le PDF semble être scanné (aucun texte exploitable). Veuillez fournir un PDF contenant du texte sélectionnable.',
