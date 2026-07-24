@@ -2,6 +2,7 @@
 
 use App\Jobs\AnalyzeContractJob;
 use App\Models\Analysis;
+use App\Models\Clause;
 use App\Models\Contract;
 use App\Models\User;
 use App\ValueObjects\AnalysisResult;
@@ -82,6 +83,18 @@ class AnalyzeContractJobTest extends TestCase
         $this->assertEquals('préavis', $analysis->results->clauses[1]->type);
         $this->assertEquals('medium', $analysis->results->clauses[1]->risk_level);
         $this->assertNotNull($analysis->results->clauses[1]->explanation);
+
+        $this->assertDatabaseCount('clauses', 2);
+        $this->assertDatabaseHas('clauses', [
+            'analysis_id' => $analysis->id,
+            'type' => 'durée',
+            'risk_level' => 'low',
+        ]);
+        $this->assertDatabaseHas('clauses', [
+            'analysis_id' => $analysis->id,
+            'type' => 'préavis',
+            'risk_level' => 'medium',
+        ]);
     }
 
     public function test_multiple_risk_levels_are_parsed(): void
@@ -134,6 +147,11 @@ class AnalyzeContractJobTest extends TestCase
         $this->assertEquals('low', $analysis->results->clauses[0]->risk_level);
         $this->assertEquals('medium', $analysis->results->clauses[1]->risk_level);
         $this->assertEquals('high', $analysis->results->clauses[2]->risk_level);
+
+        $this->assertDatabaseCount('clauses', 3);
+        $this->assertDatabaseHas('clauses', ['analysis_id' => $analysis->id, 'risk_level' => 'low']);
+        $this->assertDatabaseHas('clauses', ['analysis_id' => $analysis->id, 'risk_level' => 'medium']);
+        $this->assertDatabaseHas('clauses', ['analysis_id' => $analysis->id, 'risk_level' => 'high']);
     }
 
     public function test_job_fails_when_risk_level_missing_on_clause(): void
@@ -275,6 +293,72 @@ class AnalyzeContractJobTest extends TestCase
         $this->assertNull($analysis->results);
     }
 
+    public function test_clauses_are_persisted_with_correct_values(): void
+    {
+        Http::fake([
+            config('ai.endpoint') => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => json_encode([
+                                'duree' => '24 mois',
+                                'preavis' => '1 mois',
+                                'penalites' => '5%',
+                                'conditions_resiliation' => 'Préavis de 1 mois',
+                                'clauses' => [
+                                    [
+                                        'type' => 'durée',
+                                        'contenu' => 'Durée de 24 mois.',
+                                        'risk_level' => 'low',
+                                        'explanation' => 'Classe standard.',
+                                    ],
+                                    [
+                                        'type' => 'résiliation',
+                                        'contenu' => 'Résiliation unilatérale possible.',
+                                        'risk_level' => 'high',
+                                        'explanation' => 'Clause déséquilibrée.',
+                                    ],
+                                ],
+                            ]),
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $analysis = $this->fakeAnalysis();
+        $job = new AnalyzeContractJob($analysis);
+        $job->handle();
+
+        $analysis->refresh();
+
+        $this->assertDatabaseCount('clauses', 2);
+        $clause = Clause::where('analysis_id', $analysis->id)
+            ->where('type', 'durée')
+            ->first();
+
+        $this->assertNotNull($clause);
+        $this->assertEquals('Durée de 24 mois.', $clause->content);
+        $this->assertEquals('low', $clause->risk_level);
+        $this->assertNotNull($clause->explanation);
+    }
+
+    public function test_no_clauses_persisted_when_analysis_fails(): void
+    {
+        Http::fake([
+            config('ai.endpoint') => Http::response(null, 500),
+        ]);
+
+        $analysis = $this->fakeAnalysis();
+        $job = new AnalyzeContractJob($analysis);
+        $job->handle();
+
+        $analysis->refresh();
+
+        $this->assertEquals('failed', $analysis->status);
+        $this->assertDatabaseCount('clauses', 0);
+    }
+
     public function test_job_sets_status_done_with_empty_clauses_array(): void
     {
         Http::fake([
@@ -304,6 +388,7 @@ class AnalyzeContractJobTest extends TestCase
         $this->assertEquals('done', $analysis->status);
         $this->assertNotNull($analysis->results);
         $this->assertCount(0, $analysis->results->clauses);
+        $this->assertDatabaseCount('clauses', 0);
     }
 
     public function test_job_sets_failed_on_empty_raw_text(): void

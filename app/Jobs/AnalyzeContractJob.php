@@ -3,10 +3,12 @@
 namespace App\Jobs;
 
 use App\Models\Analysis;
+use App\Models\Clause;
 use App\ValueObjects\AnalysisResult;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -109,10 +111,26 @@ class AnalyzeContractJob implements ShouldQueue
 
             $result = AnalysisResult::fromArray($decoded);
 
-            $this->analysis->update([
-                'status' => 'done',
-                'results' => $result,
-            ]);
+            DB::transaction(function () use ($decoded, $result) {
+                $clauseData = array_map(fn (array $clause) => [
+                    'analysis_id' => $this->analysis->id,
+                    'type' => $clause['type'],
+                    'content' => $clause['contenu'],
+                    'risk_level' => $clause['risk_level'],
+                    'explanation' => $clause['explanation'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ], $decoded['clauses']);
+
+                if (! empty($clauseData)) {
+                    Clause::insert($clauseData);
+                }
+
+                $this->analysis->update([
+                    'status' => 'done',
+                    'results' => $result,
+                ]);
+            });
         } catch (\Throwable $e) {
             Log::error('Analyse IA échouée', [
                 'analysis_id' => $this->analysis->id,
