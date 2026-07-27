@@ -11,7 +11,9 @@ class AnalysisResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'contract_title' => $this->contract?->title,
             'status' => $this->status,
+            'created_at' => $this->created_at,
         ];
     }
 }

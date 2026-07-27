@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContractController;
 use Illuminate\Support\Facades\Route;
@@ -15,4 +16,5 @@ Route::get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('contracts', ContractController::class)->only(['index', 'store', 'destroy']);
     Route::post('contracts/{contract}/analyze', [ContractController::class, 'analyze']);
+    Route::get('analyses', [AnalysisController::class, 'index']);
 });

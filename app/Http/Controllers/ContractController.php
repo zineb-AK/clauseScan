@@ -107,33 +107,7 @@ class ContractController extends Controller
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
-    public function analyze(Contract $contract): JsonResponse
-    {
-        $this->authorize('analyze', $contract);
-
-        $existing = $contract->analyses()
-            ->whereIn('status', ['pending', 'processing'])
-            ->exists();
-
-        if ($existing) {
-            return response()->json([
-                'message' => 'Une analyse est déjà en cours pour ce contrat.',
-            ], Response::HTTP_CONFLICT);
-        }
-
-        $analysis = Analysis::create([
-            'contract_id' => $contract->id,
-            'user_id' => $contract->user_id,
-            'status' => 'pending',
-        ]);
-
-        AnalyzeContractJob::dispatch($analysis);
-
-        return (new AnalysisResource($analysis))
-            ->response()
-            ->setStatusCode(Response::HTTP_ACCEPTED);
-    }
-
+    
     private function deriveTitle(string $content): string
     {
         $lines = explode("\n", $content);
