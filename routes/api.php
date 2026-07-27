@@ -17,4 +17,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('contracts', ContractController::class)->only(['index', 'store', 'destroy']);
     Route::post('contracts/{contract}/analyze', [ContractController::class, 'analyze']);
     Route::get('analyses', [AnalysisController::class, 'index']);
+    Route::get('analyses/{analysis}', [AnalysisController::class, 'show']);
 });
