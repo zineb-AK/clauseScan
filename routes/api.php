@@ -18,4 +18,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('contracts/{contract}/analyze', [ContractController::class, 'analyze']);
     Route::get('analyses', [AnalysisController::class, 'index']);
     Route::get('analyses/{analysis}', [AnalysisController::class, 'show']);
+    Route::get('analyses/{analysis}/report', [AnalysisController::class, 'report']);
 });
