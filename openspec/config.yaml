@@ -29,6 +29,40 @@ context: |
   - Déploiement : Azure Virtual Machine + Nginx
   - Documentation API : Scribe
   - Gestion de projet : Jira (board tenu à jour en parallèle des changes OpenSpec)
+  ## Frontend (React) — architecture et liaison avec l'API
+  - Le frontend est une SPA React (Vite), qui ne fait QUE consommer l'API REST
+    Laravel — aucun SSR, aucun Blade côté frontend.
+  - Authentification : Sanctum en mode token (Bearer), PAS en mode "SPA cookie"
+    (pas de CSRF cookie, pas de domaine partagé requis). Le frontend stocke le
+    token reçu à la connexion et l'envoie via l'en-tête `Authorization: Bearer`
+    sur chaque requête protégée.
+  - Stockage du token : en mémoire (context React) + persistance en
+    `localStorage` pour survivre au refresh. Pas de cookie httpOnly côté API
+    (hors périmètre de ce projet).
+  - Client HTTP : instance Axios unique (`src/lib/api.js`) avec `baseURL`
+    définie via `VITE_API_URL`, intercepteur qui injecte le Bearer token, et
+    intercepteur de réponse qui gère globalement :
+      - 401 → déconnexion + redirection vers /login
+      - 422 → laisse remonter les erreurs de validation au formulaire appelant
+      - 403/404 → redirection vers une page d'erreur dédiée
+  - Data fetching / cache serveur : TanStack Query (React Query) pour tous les
+    appels API (queries + mutations), jamais de `useEffect` + `fetch` manuel.
+  - Formulaires : React Hook Form + Zod, avec des schémas de validation qui
+    reflètent les règles du backend (mêmes contraintes, mêmes messages autant
+    que possible) pour un feedback instantané côté client avant l'appel API.
+  - Routing : React Router, routes protégées via un composant `<RequireAuth>`
+    qui vérifie la présence d'un token valide avant de rendre la page.
+  - Traitement asynchrone (analyse IA) : le frontend reçoit un 202 à l'appel
+    POST /analyze, puis fait du polling sur GET /api/analyses/{id} (React
+    Query `refetchInterval`, ex. toutes les 2s) jusqu'à statut "done" ou
+    "failed". Pas de WebSocket/Pusher dans ce projet.
+  - i18n : react-i18next côté UI (textes de l'interface), indépendant du
+    paramètre `language` envoyé à l'IA (US16) qui ne concerne que le contenu
+    de l'analyse retournée par l'API.
+  - Structure des dossiers : `src/pages` (une page par route), `src/features`
+    (logique + composants groupés par domaine : auth, contracts, analysis,
+    history, chat), `src/lib` (api client, utils), `src/components` (UI
+    partagée).
 
   ## Domaines fonctionnels (épics) et User Stories
   - **auth** (US1-US3) : inscription, connexion, déconnexion via Sanctum.
@@ -103,6 +137,8 @@ rules:
     - "Indiquer la Policy Laravel utilisee pour l'autorisation d'acces"
     - "Pour toute fonctionnalite liee a US17 (agent conversationnel), documenter la strategie de chunking, le stockage des embeddings et la methode de recherche (similarite cosinus, top-k, etc.)"
     - "Lister les jobs crees/modifies et leur file d'attente cible"
+    - "Si la fonctionnalite a un impact frontend, documenter le contrat d'API consomme (methode, route, forme exacte de la reponse/erreur attendue par React)"
+    - "Preciser le comportement de polling ou de gestion d'etat asynchrone cote frontend si l'endpoint backend est asynchrone (202)"
 
   tasks:
     - "Decouper en taches de 2h maximum, une tache = un commit atomique possible"
@@ -110,3 +146,4 @@ rules:
     - "Inclure une tache de mise a jour de la documentation Scribe si un endpoint est ajoute ou modifie"
     - "Inclure une tache vendor/bin/pint --dirty --format agent en fin de liste"
     - "Separer clairement les taches backend (Laravel) des taches frontend (React) si la fonctionnalite touche aux deux"
+    - "Pour toute tache frontend, inclure un test Vitest + React Testing Library correspondant (equivalent frontend du test Pest)"
