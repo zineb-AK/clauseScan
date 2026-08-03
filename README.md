@@ -56,3 +56,19 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Frontend React (SPA)
+
+La SPA React (Vite) est servie par Laravel et consomme l'API REST via une instance Axios unique (`resources/js/src/lib/api.js`).
+
+### Authentification
+
+- Écrans `/login` et `/register` (React Hook Form + Zod) branchés sur `POST /api/login` et `POST /api/register`.
+- Le token Sanctum est stocké dans `localStorage` (clés `clausescan_token` et `clausescan_user`) et envoyé automatiquement via l'en-tête `Authorization: Bearer <token>` sur chaque requête.
+- Une réponse 401 purge la session et redirige vers `/login` ; les erreurs 422 sont affichées sous les champs du formulaire.
+
+### Configuration
+
+- `VITE_API_URL` : URL de base de l'API (ex. `http://localhost:8000/api`), à renseigner dans `.env`.
+- Tests frontend : `npm run test` (Vitest + React Testing Library).
+- Build : `npm run build`.
