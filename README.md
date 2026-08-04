@@ -273,7 +273,7 @@ Formulaire d'inscription : nom, email, mot de passe et confirmation, avec valida
 
 ### Mes contrats
 
-![Mes contrats](docs/screenshots/contrats.png)
+<!-- ![Mes contrats](docs/screenshots/contrats.png) -->
 
 Page "Mes contrats" (actuellement un placeholder). Le backend associé est prêt : liste, import PDF/texte, suppression et lancement d'analyse.
 
