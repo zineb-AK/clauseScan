@@ -1,8 +1,4 @@
-## Purpose
-
-Écrans d'inscription et de connexion de la SPA React : gestion du token Sanctum côté client (Axios, localStorage, contexte d'authentification) pour consommer les endpoints `/api/register`, `/api/login` et `/api/logout`.
-
-## Requirements
+## ADDED Requirements
 
 ### Requirement: User can register an account from the React SPA
 

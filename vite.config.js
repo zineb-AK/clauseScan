@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/src/main.tsx'],
+            input: ['resources/css/app.css', 'resources/js/app.jsx'],
             refresh: true,
             fonts: [
                 bunny('Instrument Sans', {
@@ -22,5 +22,10 @@ export default defineConfig({
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
+    },
+    test: {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: ['./resources/js/test/setup.js'],
     },
 });
