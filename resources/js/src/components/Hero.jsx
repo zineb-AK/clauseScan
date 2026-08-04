@@ -1,8 +1,10 @@
+import { Link } from 'react-router-dom';
+
 export function Hero() {
     return (
         <section id="hero" className="relative min-h-screen flex items-center overflow-hidden">
             <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-[--color-primary] via-[--color-primary]/95 to-gray-900" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-gray-900" />
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-400 rounded-full blur-3xl" />
                     <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400 rounded-full blur-3xl" />
@@ -38,12 +40,12 @@ export function Hero() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <a
-                            href="/register"
+                        <Link
+                            to="/register"
                             className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-white bg-emerald-500 hover:bg-emerald-600 rounded-2xl transition-all duration-200 shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5"
                         >
                             Commencer maintenant
-                        </a>
+                        </Link>
                         <a
                             href="#how-it-works"
                             className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-2xl transition-all duration-200 border border-white/20"

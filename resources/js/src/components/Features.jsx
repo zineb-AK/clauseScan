@@ -60,7 +60,7 @@ export function Features() {
         <section id="features" className="py-24 lg:py-32 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-[--color-primary] mb-4">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-4">
                         Tout ce dont vous avez besoin
                     </h2>
                     <p className="text-lg text-gray-600">
@@ -74,7 +74,7 @@ export function Features() {
                             key={feature.title}
                             className="group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100"
                         >
-                            <div className="w-12 h-12 rounded-xl bg-blue-50 group-hover:bg-[--color-primary] flex items-center justify-center text-[--color-primary] group-hover:text-white transition-all duration-300 mb-5">
+                            <div className="w-12 h-12 rounded-xl bg-blue-50 group-hover:bg-primary flex items-center justify-center text-primary group-hover:text-white transition-all duration-300 mb-5">
                                 {feature.icon}
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>

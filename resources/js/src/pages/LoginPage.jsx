@@ -43,7 +43,7 @@ export function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[--color-primary] via-[--color-primary-light] to-emerald-500 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-br from-primary via-primary-light to-emerald-500 flex items-center justify-center px-4">
             <div className="w-full max-w-md">
                 <div className="flex items-center justify-center gap-2 mb-8">
                     <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
@@ -65,7 +65,7 @@ export function LoginPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-2xl p-8">
-                    <h1 className="text-2xl font-bold text-[--color-primary]">Connexion</h1>
+                    <h1 className="text-2xl font-bold text-primary">Connexion</h1>
                     <p className="mt-1 text-sm text-gray-500">
                         Accédez à votre espace pour analyser vos contrats.
                     </p>
@@ -128,7 +128,7 @@ export function LoginPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[--color-primary] hover:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-500/20"
+                            className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-emerald-500/25"
                         >
                             {isSubmitting ? 'Connexion…' : 'Se connecter'}
                         </button>
@@ -138,7 +138,7 @@ export function LoginPage() {
                         Pas encore de compte ?{' '}
                         <Link
                             to="/register"
-                            className="font-semibold text-[--color-primary] hover:underline"
+                            className="font-semibold text-primary hover:underline"
                         >
                             S'inscrire
                         </Link>

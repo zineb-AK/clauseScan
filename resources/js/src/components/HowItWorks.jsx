@@ -36,7 +36,7 @@ export function HowItWorks() {
         <section id="how-it-works" className="py-24 lg:py-32 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-[--color-primary] mb-4">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-4">
                         Comment ça marche
                     </h2>
                     <p className="text-lg text-gray-600">
@@ -50,10 +50,10 @@ export function HowItWorks() {
                             {index < steps.length - 1 && (
                                 <div className="hidden lg:block absolute top-12 left-[60%] w-full h-px border-t-2 border-dashed border-gray-200" />
                             )}
-                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 text-[--color-primary] mb-6 lg:mx-0 mx-auto">
+                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 text-primary mb-6 lg:mx-0 mx-auto">
                                 {step.icon}
                             </div>
-                            <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[--color-primary] text-white text-sm font-bold mb-4 lg:mx-0 mx-auto">
+                            <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold mb-4 lg:mx-0 mx-auto">
                                 {step.number}
                             </div>
                             <h3 className="text-xl font-semibold text-gray-900 mb-3">{step.title}</h3>
